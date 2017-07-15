@@ -15,7 +15,7 @@ def get_args():
     Parse command line arguments
 
     :returns: tuple(gdax_data, timeframe)
-        - gdax_data: filename of GDAX CSV
+        - gdax_data: list of GDAX CSV filenames
         - timeframe: GDAX data timeframe
     :rtype: tuple(string, int)
     """
@@ -32,7 +32,7 @@ def get_args():
     CSV_ARG = 'csv_file'
     CSV_HELP = 'CSV file of GDAX data'
 
-    parser.add_argument(CSV_ARG, help=CSV_HELP)
+    parser.add_argument(CSV_ARG, nargs='+', help=CSV_HELP)
 
     #
     # TIMEFRAME ARGUMENT
@@ -78,11 +78,6 @@ def get_args():
 if __name__ == '__main__':
     gdax_data, timeframe = get_args()
 
-    data = GDAXCSVData(
-        dataname=gdax_data,
-        timeframe=timeframe,
-    )
-
     cerebro = bt.Cerebro()
 
     cerebro.addstrategy(MeanReversionStrategy)
@@ -95,7 +90,13 @@ if __name__ == '__main__':
             timeframe=timeframe, riskfreerate=RISKFREERATE,
             annualize=True)
 
-    cerebro.adddata(data)
+
+    for gd in gdax_data:
+        data = GDAXCSVData(
+            dataname=gd,
+            timeframe=timeframe,
+        )
+        cerebro.adddata(data)
 
     strats = cerebro.run()
     strat = strats[0]
